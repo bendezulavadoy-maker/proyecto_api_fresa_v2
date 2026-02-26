@@ -32,7 +32,7 @@ async def predict(file: UploadFile = File(...)):
             f.write(await file.read())
 
         # Inferencia con imagen reducida para ahorrar memoria
-        results = model(temp_name, imgsz=416, verbose=False)[0]
+       results = model(temp_name, imgsz=640, verbose=False, augment=True)[0]
 
         counts = {name: 0 for name in class_names}
         for cls_id in results.boxes.cls:
