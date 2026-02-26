@@ -79,5 +79,6 @@ async def predict(file: UploadFile = File(...)):
 def root():
     return {"message": "API YOLO de fresas funcionando correctamente"}
 @app.get("/health")
+@app.head("/health")
 def health():
     return {"status": "ok"}
