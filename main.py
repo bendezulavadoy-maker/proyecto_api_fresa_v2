@@ -15,7 +15,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Cargar modelo con optimizaciones de memoria
 model = YOLO("best.pt")
 model.overrides['verbose'] = False
 model.overrides['nms'] = True
@@ -24,28 +23,24 @@ class_names = ['floración', 'fruto_verde', 'fruto_blanco', 'casi_madura', 'madu
 
 @app.post("/predict")
 async def predict(file: UploadFile = File(...)):
-
     temp_name = f"temp_{uuid.uuid4()}.jpg"
     
     try:
         with open(temp_name, "wb") as f:
             f.write(await file.read())
-
-        # Inferencia con imagen reducida para ahorrar memoria
-       results = model(temp_name, imgsz=640, verbose=False, augment=True)[0]
-
+        
+        results = model(temp_name, imgsz=640, verbose=False, augment=True)[0]
+        
         counts = {name: 0 for name in class_names}
         for cls_id in results.boxes.cls:
             cls_id = int(cls_id)
             if cls_id < len(class_names):
                 counts[class_names[cls_id]] += 1
-
-        # Liberar resultados de memoria
+        
         del results
         gc.collect()
 
     finally:
-        # Siempre eliminar el archivo temporal
         if os.path.exists(temp_name):
             os.remove(temp_name)
 
@@ -54,7 +49,6 @@ async def predict(file: UploadFile = File(...)):
     blancos = counts['fruto_blanco']
     casi = counts['casi_madura']
     maduras = counts['madura']
-
     total_frutos = verdes + blancos + casi + maduras
 
     if flores + total_frutos == 0:
@@ -78,6 +72,7 @@ async def predict(file: UploadFile = File(...)):
 @app.get("/")
 def root():
     return {"message": "API YOLO de fresas funcionando correctamente"}
+
 @app.get("/health")
 @app.head("/health")
 def health():
